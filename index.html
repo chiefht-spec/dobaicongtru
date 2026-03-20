@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trợ Lý Dò Bài SGK - Toán 7 Chân Trời Sáng Tạo (Test Mode)</title>
+    <title>Trợ Lý Dò Bài SGK - Toán 7 Chân Trời Sáng Tạo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
@@ -245,34 +245,6 @@
             </div>
         </main>
     </div>
-
-    <!-- ===== BỘ CÔNG CỤ TEST (DEV TOOLS) ===== -->
-    <button onclick="toggleDevTools()" class="fixed bottom-4 left-4 bg-slate-800 hover:bg-slate-700 text-white w-12 h-12 rounded-full shadow-lg z-50 flex items-center justify-center transition-transform hover:scale-110 border-2 border-slate-600">
-        <i class="fas fa-bug text-xl"></i>
-    </button>
-
-    <div id="dev-panel" class="hidden fixed bottom-16 left-4 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl p-4 z-50 w-64 fade-in text-white">
-        <div class="flex justify-between items-center border-b border-slate-600 pb-2 mb-3">
-            <h3 class="font-bold text-slate-200"><i class="fas fa-cogs mr-1"></i> Dev Tools (Test)</h3>
-            <button onclick="toggleDevTools()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="flex flex-col gap-2">
-            <button onclick="devUnlockAll()" class="w-full text-left p-2 hover:bg-slate-700 rounded text-sm font-semibold transition-colors flex items-center gap-2">
-                <i class="fas fa-unlock-alt text-blue-400 w-4"></i> Mở khóa tất cả chặng
-            </button>
-            <button onclick="devFillCorrect()" class="w-full text-left p-2 hover:bg-slate-700 rounded text-sm font-semibold transition-colors flex items-center gap-2">
-                <i class="fas fa-check text-green-400 w-4"></i> Tự điền đáp án đúng
-            </button>
-            <button onclick="devShowSolution()" class="w-full text-left p-2 hover:bg-slate-700 rounded text-sm font-semibold transition-colors flex items-center gap-2">
-                <i class="fas fa-times text-red-400 w-4"></i> Buộc sai (Xem giải)
-            </button>
-            <div class="border-t border-slate-600 my-1"></div>
-            <button onclick="devReset()" class="w-full text-left p-2 hover:bg-slate-700 rounded text-sm font-semibold transition-colors flex items-center gap-2 text-amber-400">
-                <i class="fas fa-sync-alt w-4"></i> Reset làm lại từ đầu
-            </button>
-        </div>
-    </div>
-    <!-- ======================================= -->
 
     <script>
         const baiTapData = [
@@ -820,56 +792,6 @@
             inputEl.value = val.substring(0, start) + char + val.substring(end);
             inputEl.focus();
             inputEl.selectionStart = inputEl.selectionEnd = start + char.length;
-        }
-
-        // ==========================================
-        // DEV TOOLS SCRIPT
-        // ==========================================
-        function toggleDevTools() {
-            const panel = document.getElementById('dev-panel');
-            panel.classList.toggle('hidden');
-        }
-
-        function devUnlockAll() {
-            currentBatchId = 2; // Max batch id
-            renderNav();
-            toggleDevTools();
-        }
-
-        function devFillCorrect() {
-            if(!currentExerciseId) { alert("Hãy mở một bài tập trước!"); return; }
-            const ex = baiTapData.find(e => e.id === currentExerciseId);
-            const inputEls = document.querySelectorAll('.dynamic-answer-input');
-            
-            inputEls.forEach((el, idx) => {
-                let ans = ex.inputs[idx].acceptedAnswers[0];
-                ans = ans.replace(/\^(\d+)/g, function(match, digits) {
-                    return digits.split('').map(char => superScriptMap[char] || char).join('');
-                });
-                el.value = ans;
-            });
-            toggleDevTools();
-        }
-
-        function devShowSolution() {
-            if(!currentExerciseId) { alert("Hãy mở một bài tập trước!"); return; }
-            
-            document.querySelectorAll('.dynamic-answer-input').forEach(el => el.value = "sai");
-            progressData[currentExerciseId].attempts = 2; 
-            checkAnswer();
-            toggleDevTools();
-        }
-
-        function devReset() {
-            initProgress();
-            currentBatchId = 0;
-            currentExerciseId = null;
-            isFinalCompleted = false;
-            document.getElementById('btn-force-summary').classList.add('hidden');
-            hideAllScreens();
-            document.getElementById('welcome-screen').classList.remove('hidden');
-            renderNav();
-            toggleDevTools();
         }
 
         window.onload = renderNav;
