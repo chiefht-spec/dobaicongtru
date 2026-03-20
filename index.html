@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trợ Lý Dò Bài SGK - Toán 7 Chân Trời Sáng Tạo (Test Mode)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            startup: { pageReady: () => MathJax.startup.defaultPageReady() }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0fdf4;
+            background-image: radial-gradient(#bbf7d0 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #334155;
+        }
+        .math-input { font-family: 'Cambria Math', 'Times New Roman', serif; font-size: 1.4rem; letter-spacing: 1px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
+        .fade-in { animation: fadeIn 0.4s ease-in-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .badge-pop { animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.5) rotate(-15deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
+
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .nav-btn.active { background-color: #22c55e; color: white; box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.4); border-color: #16a34a; }
+        .nav-btn.locked { opacity: 0.6; cursor: not-allowed; background-color: #f8fafc; color: #94a3b8; }
+        .status-correct { border-left: 4px solid #22c55e; }
+        .status-failed { border-left: 4px solid #ef4444; }
+        .status-pending { border-left: 4px solid #cbd5e1; }
+        
+        .cert-card { background: linear-gradient(135deg, #fff 0%, #f8fafc 100%); }
+        .cert-diamond { color: #06b6d4; text-shadow: 0 0 10px rgba(6,182,212,0.5); }
+        .cert-gold { color: #eab308; text-shadow: 0 0 10px rgba(234,179,8,0.5); }
+        .cert-silver { color: #94a3b8; text-shadow: 0 0 10px rgba(148,163,184,0.5); }
+        .cert-bronze { color: #d97706; text-shadow: 0 0 10px rgba(217,119,6,0.5); }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden relative">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center z-10 border-b-4 border-green-500">
+        <div class="flex items-center gap-3">
+            <div class="bg-green-100 p-2 rounded-lg text-green-600 text-xl"><i class="fas fa-robot"></i></div>
+            <h1 class="text-xl md:text-2xl font-bold text-slate-800">Trợ Lý Dò Bài SGK</h1>
+        </div>
+        <div class="text-sm font-bold text-blue-600 bg-blue-50 border border-blue-200 px-4 py-1.5 rounded-full flex items-center gap-2">
+            <i class="fas fa-map-signs"></i> <span id="header-stage-info">Chặng 1 / 3</span>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden flex-col md:flex-row max-w-7xl mx-auto w-full">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-72 bg-white/90 backdrop-blur-sm border-r border-slate-200 overflow-y-auto p-4 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-0">
+            <div id="nav-container" class="flex flex-col gap-4 pb-2 w-full">
+                <!-- Danh sách chặng -->
+            </div>
+            <button id="btn-force-summary" onclick="showFinalSummary()" class="hidden mt-6 w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-700 transition-colors shadow-lg">🏆 Xem Chứng Nhận Tổng</button>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-8 relative" id="main-content">
+            
+            <div id="welcome-screen" class="h-full flex flex-col items-center justify-center text-center text-slate-400 fade-in">
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 max-w-md">
+                    <i class="fas fa-route text-6xl mb-4 text-blue-400"></i>
+                    <h2 class="text-2xl font-extrabold text-slate-700 mb-2">Hành trình 9 thử thách!</h2>
+                    <p class="text-slate-500 mb-4">Các bài tập được chia làm 3 chặng. Vượt qua mỗi chặng em sẽ nhận được huy hiệu phần thưởng.</p>
+                    <button onclick="startJourney()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform active:scale-95 text-lg w-full">
+                        Bắt đầu Chặng 1 <i class="fas fa-play ml-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="batch-summary-screen" class="hidden h-full flex flex-col items-center justify-center fade-in">
+                <div class="bg-white max-w-lg w-full rounded-3xl shadow-xl border border-slate-200 p-8 text-center relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-1" id="batch-title">Hoàn thành Chặng 1!</h2>
+                    <p class="text-slate-500 mb-6">Em đã làm xong 3 câu hỏi của chặng này.</p>
+                    <div class="bg-slate-50 rounded-2xl p-6 mb-6">
+                        <div class="text-4xl font-extrabold text-blue-600 mb-2" id="batch-score">0/3</div>
+                        <div class="text-slate-500 font-semibold uppercase tracking-wider text-xs">Câu đúng chặng này</div>
+                    </div>
+                    <div id="batch-reward" class="hidden mb-8">
+                        <div class="text-green-500 text-sm font-bold uppercase tracking-widest mb-2 animate-pulse">Phần thưởng xuất sắc</div>
+                        <div class="flex flex-col items-center justify-center badge-pop">
+                            <i class="fas fa-medal text-6xl text-yellow-400 drop-shadow-md mb-2"></i>
+                            <span class="font-bold text-slate-700 bg-yellow-100 px-4 py-1 rounded-full border border-yellow-300">Huy Hiệu Hoàn Hảo</span>
+                        </div>
+                    </div>
+                    <div id="batch-no-reward" class="hidden mb-8 text-slate-400 text-sm">
+                        <i class="fas fa-info-circle"></i> Trả lời đúng 3/3 để nhận Huy hiệu nhé. Cố lên ở chặng sau!
+                    </div>
+                    <button id="btn-next-batch" onclick="unlockNextBatch()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-transform active:scale-95 w-full text-lg">
+                        Mở khóa Chặng tiếp theo <i class="fas fa-unlock ml-2"></i>
+                    </button>
+                    <button id="btn-finish-all" onclick="showFinalSummary()" class="hidden bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-transform active:scale-95 w-full text-lg">
+                        Nhận Chứng Nhận Cuối Cùng 🏆
+                    </button>
+                </div>
+            </div>
+
+            <div id="final-summary-screen" class="hidden max-w-3xl mx-auto bg-white rounded-3xl shadow-2xl border border-slate-200 p-8 fade-in text-center cert-card relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+                <div class="relative z-10">
+                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Chứng Nhận Hoàn Thành</h2>
+                    <h1 id="growth-mindset-msg" class="text-2xl md:text-3xl font-black text-slate-800 mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 leading-tight">Lời Khen Growth Mindset</h1>
+                    <div class="badge-pop mb-6">
+                        <i id="cert-icon" class="fas fa-gem text-8xl mb-4"></i>
+                        <h2 id="cert-title" class="text-3xl font-black mb-1 uppercase tracking-wider">Huy Hiệu</h2>
+                        <p id="cert-desc" class="text-slate-600 font-medium px-4 max-w-lg mx-auto leading-relaxed"></p>
+                    </div>
+                    <div class="bg-white/80 backdrop-blur rounded-2xl p-6 border border-slate-200 max-w-sm mx-auto shadow-sm mb-8">
+                        <div class="text-5xl font-extrabold text-slate-800 mb-1" id="final-score-text">0/9</div>
+                        <div class="text-slate-500 font-bold uppercase tracking-wider text-sm">Tổng điểm</div>
+                    </div>
+                    <div class="text-left bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                        <h3 class="font-bold text-slate-700 mb-4 border-b pb-2 flex items-center justify-between">
+                            <span>Tra cứu lời giải chi tiết:</span>
+                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-normal">Click vào bài để xem</span>
+                        </h3>
+                        <div id="final-summary-list" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="workspace" class="hidden max-w-3xl mx-auto pb-20">
+                <div id="review-banner" class="hidden bg-indigo-50 border-l-4 border-indigo-500 text-indigo-700 p-4 rounded-r-xl mb-6 font-semibold flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-history text-indigo-500"></i>
+                        <span>Chế độ xem lại (Chặng đã hoàn thành)</span>
+                    </div>
+                    <button onclick="goToNextPendingOrSummary()" class="text-sm bg-indigo-500 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-600 transition-colors shadow-sm">Quay về bài đang làm</button>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 relative">
+                    <div class="absolute -top-3 -right-3 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-black text-xl border-4 border-white shadow-sm" id="q-number">1</div>
+                    <div class="flex justify-between items-start mb-4 pr-8">
+                        <h2 id="q-title" class="text-xl font-bold text-green-600 border-b-2 border-green-200 pb-1">Bài ?</h2>
+                        <span id="q-badge" class="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-sm font-semibold">Chưa làm</span>
+                    </div>
+                    <div id="q-content" class="text-lg leading-relaxed text-slate-700"></div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 relative overflow-hidden" id="input-area">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                    <label class="block text-sm font-bold text-slate-500 mb-4 uppercase tracking-wide">Nhập kết quả cuối cùng:</label>
+                    
+                    <div id="dynamic-inputs-container" class="flex flex-col gap-3 mb-5">
+                        <!-- Dynamic inputs rendered here -->
+                    </div>
+
+                    <div class="flex justify-end border-t border-slate-100 pt-4">
+                        <button id="btn-submit" onclick="checkAnswer()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-md transition-transform active:scale-95 flex items-center justify-center gap-2 w-full sm:w-auto">
+                            <i class="fas fa-paper-plane"></i> Gửi đáp án
+                        </button>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap gap-2 text-base" id="keyboard-area">
+                        <span class="text-slate-400 py-1 mr-1 text-sm flex items-center">Gõ nhanh:</span>
+                        <button onclick="insertChar('x')" class="px-4 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 text-slate-700 font-serif italic shadow-sm">x</button>
+                        <button onclick="insertChar('y')" class="px-4 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 text-slate-700 font-serif italic shadow-sm">y</button>
+                        <button onclick="insertChar('t')" class="px-4 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 text-slate-700 font-serif italic shadow-sm">t</button>
+                        <button onclick="insertChar('²')" class="px-4 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 text-slate-700 font-serif shadow-sm">²</button>
+                        <button onclick="insertChar('³')" class="px-4 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 text-slate-700 font-serif shadow-sm">³</button>
+                        <button onclick="insertChar('⁴')" class="px-4 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 text-slate-700 font-serif shadow-sm">⁴</button>
+                        <button onclick="insertChar('+')" class="px-4 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 text-slate-700 font-mono shadow-sm">+</button>
+                        <button onclick="insertChar('-')" class="px-4 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 text-slate-700 font-mono shadow-sm">-</button>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-3 italic"><i class="fas fa-info-circle"></i> Mẹo: Nhấp vào từng ô để điền. Có thể gõ dấu mũ <b>^</b> kèm số để tạo lũy thừa tự động.</p>
+                </div>
+
+                <div id="feedback-area" class="flex flex-col gap-4">
+                    <div id="hint-1" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-5 fade-in">
+                        <div class="flex items-start gap-3">
+                            <div class="bg-amber-100 text-amber-500 w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"><i class="fas fa-lightbulb"></i></div>
+                            <div>
+                                <h4 class="font-bold text-amber-800 mb-1">Gợi ý lần 1 (Phương pháp):</h4>
+                                <div id="hint-1-text" class="text-amber-900 leading-relaxed"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="hint-2" class="hidden bg-orange-50 border border-orange-200 rounded-xl p-5 fade-in">
+                        <div class="flex items-start gap-3">
+                            <div class="bg-orange-100 text-orange-500 w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"><i class="fas fa-search"></i></div>
+                            <div>
+                                <h4 class="font-bold text-orange-800 mb-1">Gợi ý lần 2 (Chi tiết bước làm):</h4>
+                                <div id="hint-2-text" class="text-orange-900 leading-relaxed"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="success-msg" class="hidden bg-green-500 text-white rounded-xl p-6 text-center fade-in shadow-lg">
+                        <i class="fas fa-star text-4xl mb-2 text-yellow-300 animate-bounce"></i>
+                        <h3 class="text-2xl font-bold mb-1">Chính xác!</h3>
+                        <p class="mb-4">Em làm rất chuẩn xác. Hãy xem cách trình bày mẫu bên dưới nhé!</p>
+                        <button id="btn-next-success" onclick="goToNextPendingOrSummary()" class="bg-white text-green-600 font-bold py-2 px-8 rounded-full hover:bg-green-50 shadow-md transition-transform active:scale-95">
+                            Tiếp tục <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+
+                    <div id="fail-msg" class="hidden bg-red-500 text-white rounded-xl p-6 text-center fade-in shadow-lg">
+                        <i class="fas fa-times-circle text-4xl mb-2 text-red-200"></i>
+                        <h3 class="text-2xl font-bold mb-1">Đã hết 3 lượt thử!</h3>
+                        <p class="mb-4">Tạm thời em chưa giải đúng hoàn toàn bài này. Cứ làm tiếp nhé, hết Chặng em sẽ được xem lời giải.</p>
+                        <button id="btn-next-fail" onclick="goToNextPendingOrSummary()" class="bg-white text-red-600 font-bold py-2 px-8 rounded-full hover:bg-red-50 shadow-md transition-transform active:scale-95">
+                            Bỏ qua, làm bài tiếp <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+
+                    <div id="solution-box" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-6 fade-in shadow-sm relative overflow-hidden mt-2">
+                        <div class="absolute top-0 right-0 bg-emerald-500 text-white px-3 py-1 rounded-bl-lg text-xs font-bold uppercase tracking-wider">Tham khảo VietJack</div>
+                        <div class="flex items-start gap-3">
+                            <div class="bg-emerald-100 text-emerald-600 w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"><i class="fas fa-book-reader"></i></div>
+                            <div class="w-full">
+                                <h4 class="font-bold text-emerald-800 mb-3 text-lg">Cách trình bày chuẩn:</h4>
+                                <div id="solution-text" class="text-emerald-900 bg-white p-5 rounded-lg border border-emerald-100 font-serif leading-loose text-lg shadow-inner overflow-x-auto"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== BỘ CÔNG CỤ TEST (DEV TOOLS) ===== -->
+    <button onclick="toggleDevTools()" class="fixed bottom-4 left-4 bg-slate-800 hover:bg-slate-700 text-white w-12 h-12 rounded-full shadow-lg z-50 flex items-center justify-center transition-transform hover:scale-110 border-2 border-slate-600">
+        <i class="fas fa-bug text-xl"></i>
+    </button>
+
+    <div id="dev-panel" class="hidden fixed bottom-16 left-4 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl p-4 z-50 w-64 fade-in text-white">
+        <div class="flex justify-between items-center border-b border-slate-600 pb-2 mb-3">
+            <h3 class="font-bold text-slate-200"><i class="fas fa-cogs mr-1"></i> Dev Tools (Test)</h3>
+            <button onclick="toggleDevTools()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="flex flex-col gap-2">
+            <button onclick="devUnlockAll()" class="w-full text-left p-2 hover:bg-slate-700 rounded text-sm font-semibold transition-colors flex items-center gap-2">
+                <i class="fas fa-unlock-alt text-blue-400 w-4"></i> Mở khóa tất cả chặng
+            </button>
+            <button onclick="devFillCorrect()" class="w-full text-left p-2 hover:bg-slate-700 rounded text-sm font-semibold transition-colors flex items-center gap-2">
+                <i class="fas fa-check text-green-400 w-4"></i> Tự điền đáp án đúng
+            </button>
+            <button onclick="devShowSolution()" class="w-full text-left p-2 hover:bg-slate-700 rounded text-sm font-semibold transition-colors flex items-center gap-2">
+                <i class="fas fa-times text-red-400 w-4"></i> Buộc sai (Xem giải)
+            </button>
+            <div class="border-t border-slate-600 my-1"></div>
+            <button onclick="devReset()" class="w-full text-left p-2 hover:bg-slate-700 rounded text-sm font-semibold transition-colors flex items-center gap-2 text-amber-400">
+                <i class="fas fa-sync-alt w-4"></i> Reset làm lại từ đầu
+            </button>
+        </div>
+    </div>
+    <!-- ======================================= -->
+
+    <script>
+        const baiTapData = [
+            { 
+                id: 1, title: "Bài 1 (trang 35)", 
+                content: "Cho hai đa thức:<br>$P(x) = -3x^4 - 8x^2 + 2x$<br>$Q(x) = 5x^3 - 3x^2 + 4x - 6$<br><br>a) Tính $P(x) + Q(x)$.<br>b) Tính $P(x) - Q(x)$.", 
+                inputs: [
+                    { label: "a) P(x) + Q(x) =", acceptedAnswers: ["-3x^4+5x^3-11x^2+6x-6"] },
+                    { label: "b) P(x) - Q(x) =", acceptedAnswers: ["-3x^4-5x^3-5x^2-2x+6"] }
+                ],
+                hint1: "Với phép trừ $P(x) - Q(x)$, em nhớ đặt đa thức $Q(x)$ trong ngoặc. Khi bỏ ngoặc có dấu trừ phía trước, phải <b>đổi dấu TẤT CẢ</b> các hạng tử của $Q(x)$.", 
+                hint2: "Sau khi phá ngoặc, ta có:<br>$P(x) - Q(x) = -3x^4 - 8x^2 + 2x - 5x^3 + 3x^2 - 4x + 6$.<br>Giờ em hãy nhóm các hạng tử cùng bậc lại với nhau để rút gọn nhé.", 
+                solution: "<b>a) Tính $P(x) + Q(x)$</b><br>Ta có:<br>$P(x) + Q(x) = (-3x^4 - 8x^2 + 2x) + (5x^3 - 3x^2 + 4x - 6)$<br>$= -3x^4 - 8x^2 + 2x + 5x^3 - 3x^2 + 4x - 6$<br>$= -3x^4 + 5x^3 + (-8x^2 - 3x^2) + (2x + 4x) - 6$<br>$= -3x^4 + 5x^3 - 11x^2 + 6x - 6$<br><br><b>b) Tính $P(x) - Q(x)$</b><br>Ta có:<br>$P(x) - Q(x) = (-3x^4 - 8x^2 + 2x) - (5x^3 - 3x^2 + 4x - 6)$<br>$= -3x^4 - 8x^2 + 2x - 5x^3 + 3x^2 - 4x + 6$<br>$= -3x^4 - 5x^3 + (-8x^2 + 3x^2) + (2x - 4x) + 6$<br>$= -3x^4 - 5x^3 - 5x^2 - 2x + 6$" 
+            },
+            { 
+                id: 2, title: "Bài 2 (trang 35)", 
+                content: "Cho đa thức $M(x) = 7x^3 - 2x^2 + 8x + 4$. <br>Tìm đa thức $N(x)$ sao cho $M(x) + N(x) = 3x^2 - 2x$.", 
+                inputs: [
+                    { label: "Đa thức N(x) =", acceptedAnswers: ["-7x^3+5x^2-10x-4"] }
+                ],
+                hint1: "Đây là bài toán tìm số hạng chưa biết. Ta có: Tổng trừ đi số hạng đã biết.<br>Suy ra $N(x) = (3x^2 - 2x) - M(x)$.", 
+                hint2: "Hãy cẩn thận quy tắc dấu ngoặc! Khi bỏ ngoặc có dấu trừ đằng trước, đa thức $M(x)$ sẽ đổi dấu thành: $-7x^3 + 2x^2 - 8x - 4$.", 
+                solution: "Ta có: $M(x) + N(x) = 3x^2 - 2x$<br>Suy ra: $N(x) = (3x^2 - 2x) - M(x)$<br>$N(x) = (3x^2 - 2x) - (7x^3 - 2x^2 + 8x + 4)$<br>$N(x) = 3x^2 - 2x - 7x^3 + 2x^2 - 8x - 4$<br>$N(x) = -7x^3 + (3x^2 + 2x^2) + (-2x - 8x) - 4$<br>$N(x) = -7x^3 + 5x^2 - 10x - 4$" 
+            },
+            { 
+                id: 3, title: "Bài 3 (trang 35)", 
+                content: "Cho đa thức $A(y) = -5y^4 - 4y^2 + 2y + 7$.<br>Tìm đa thức $B(y)$ sao cho $B(y) - A(y) = 2y^3 - 9y^2 + 4y$.", 
+                inputs: [
+                    { label: "Đa thức B(y) =", acceptedAnswers: ["-5y^4+2y^3-13y^2+6y+7"] }
+                ],
+                hint1: "Bài toán tìm số bị trừ $B(y)$.<br>Muốn tìm số bị trừ, ta lấy Hiệu cộng với số trừ: $B(y) = (2y^3 - 9y^2 + 4y) + A(y)$.", 
+                hint2: "Vì đây là phép cộng, em không cần đổi dấu đa thức $A(y)$. Chỉ cần gộp chung lại và nhóm các hạng tử chứa $y^2$ và $y$ lại với nhau.", 
+                solution: "Ta có: $B(y) - A(y) = 2y^3 - 9y^2 + 4y$<br>Suy ra: $B(y) = (2y^3 - 9y^2 + 4y) + A(y)$<br>$B(y) = (2y^3 - 9y^2 + 4y) + (-5y^4 - 4y^2 + 2y + 7)$<br>$B(y) = -5y^4 + 2y^3 + (-9y^2 - 4y^2) + (4y + 2y) + 7$<br>$B(y) = -5y^4 + 2y^3 - 13y^2 + 6y + 7$" 
+            },
+            { 
+                id: 4, title: "Bài 4 (trang 35)", 
+                content: "Viết biểu thức đại diện cho chu vi của hình thang cân có độ dài các cạnh lần lượt là: <br>$8x$; $4x + 1$; $15x - 6$ và $4x + 1$.", 
+                inputs: [
+                    { label: "Đa thức chu vi C =", acceptedAnswers: ["31x-4"] }
+                ],
+                hint1: "Chu vi của một hình bằng tổng độ dài của tất cả các cạnh. <br>Đa thức chu vi $C = 8x + (4x + 1) + (15x - 6) + (4x + 1)$.", 
+                hint2: "Bỏ dấu ngoặc, sau đó nhóm tất cả các hạng tử chứa biến $x$ lại với nhau: $(8x + 4x + 15x + 4x)$. Làm tương tự với các số tự do.", 
+                solution: "Biểu thức biểu thị chu vi của hình thang cân là:<br>$C = 8x + (4x + 1) + (15x - 6) + (4x + 1)$<br>$C = 8x + 4x + 1 + 15x - 6 + 4x + 1$<br>$C = (8x + 4x + 15x + 4x) + (1 - 6 + 1)$<br>$C = 31x - 4$<br>Vậy đa thức chu vi là $31x - 4$." 
+            },
+            { 
+                id: 5, title: "Bài 5 (trang 35)", 
+                content: "Một tam giác có chu vi là $12t - 3$. Hai cạnh của nó có độ dài là $3t + 8$ và $4t - 7$. Tìm đa thức biểu thị độ dài cạnh còn lại.", 
+                inputs: [
+                    { label: "Cạnh còn lại =", acceptedAnswers: ["5t-4"] }
+                ],
+                hint1: "Độ dài cạnh thứ ba = Chu vi $-$ Tổng độ dài hai cạnh đã biết.<br>Em nên tính tổng 2 cạnh đã biết trước cho đỡ nhầm lẫn dấu.", 
+                hint2: "Tổng 2 cạnh: $(3t + 8) + (4t - 7) = 7t + 1$.<br>Lấy chu vi trừ đi tổng này: $(12t - 3) - (7t + 1)$. Nhớ đổi dấu khi bỏ ngoặc!", 
+                solution: "Tổng độ dài hai cạnh đã biết của tam giác là:<br>$(3t + 8) + (4t - 7) = 3t + 8 + 4t - 7 = 7t + 1$<br><br>Độ dài cạnh thứ ba của tam giác là:<br>$(12t - 3) - (7t + 1)$<br>$= 12t - 3 - 7t - 1$<br>$= (12t - 7t) + (-3 - 1)$<br>$= 5t - 4$" 
+            },
+            { 
+                id: 6, title: "Bài 6 (trang 35)", 
+                content: "Tính $P(x) + Q(x) + R(x)$ và $P(x) - Q(x) - R(x)$ biết:<br>$P(x) = 9x^4 - 3x^3 + 5x - 1$<br>$Q(x) = -2x^3 - 5x^2 + 3x - 8$<br>$R(x) = -2x^4 + 4x^2 + 2x - 10$", 
+                inputs: [
+                    { label: "a) P(x)+Q(x)+R(x) =", acceptedAnswers: ["7x^4-5x^3-x^2+10x-19"] },
+                    { label: "b) P(x)-Q(x)-R(x) =", acceptedAnswers: ["11x^4-x^3+x^2+17", "11x^4-1x^3+1x^2+17"] }
+                ],
+                hint1: "<b>Câu a:</b> Cộng bình thường 3 đa thức.<br><b>Câu b:</b> Chú ý phép trừ, khi bỏ dấu ngoặc của $Q(x)$ và $R(x)$ có dấu trừ phía trước, em phải <b>đổi dấu tất cả</b> các hạng tử bên trong.", 
+                hint2: "<b>Câu b:</b> Khi phá ngoặc ta có: <br>$P(x) - Q(x) - R(x) = 9x^4 - 3x^3 + 5x - 1 + 2x^3 + 5x^2 - 3x + 8 + 2x^4 - 4x^2 - 2x + 10$. <br>Giờ em hãy nhóm các hạng tử cùng bậc lại nhé!", 
+                solution: "<b>a) Tính $P(x) + Q(x) + R(x)$</b><br>$= (9x^4 - 3x^3 + 5x - 1) + (-2x^3 - 5x^2 + 3x - 8) + (-2x^4 + 4x^2 + 2x - 10)$<br>$= (9x^4 - 2x^4) + (-3x^3 - 2x^3) + (-5x^2 + 4x^2) + (5x + 3x + 2x) + (-1 - 8 - 10)$<br>$= 7x^4 - 5x^3 - x^2 + 10x - 19$<br><br><b>b) Tính $P(x) - Q(x) - R(x)$</b><br>$= (9x^4 - 3x^3 + 5x - 1) - (-2x^3 - 5x^2 + 3x - 8) - (-2x^4 + 4x^2 + 2x - 10)$<br>$= 9x^4 - 3x^3 + 5x - 1 + 2x^3 + 5x^2 - 3x + 8 + 2x^4 - 4x^2 - 2x + 10$<br>$= (9x^4 + 2x^4) + (-3x^3 + 2x^3) + (5x^2 - 4x^2) + (5x - 3x - 2x) + (-1 + 8 + 10)$<br>$= 11x^4 - x^3 + x^2 + 17$" 
+            },
+            { 
+                id: 7, title: "Bài 7 (trang 36)", 
+                content: "Cho đa thức $B(x)$ thỏa mãn:<br>$x^3 - 4x^2 + 8x - 2 = (x^4 + x^3 - 4x^2) + B(x)$.<br>Tìm $B(x)$.", 
+                inputs: [
+                    { label: "Đa thức B(x) =", acceptedAnswers: ["-x^4+8x-2"] }
+                ],
+                hint1: "Coi vế trái là Tổng, $(x^4 + x^3 - 4x^2)$ là số hạng thứ nhất. <br>Vậy $B(x) = (x^3 - 4x^2 + 8x - 2) - (x^4 + x^3 - 4x^2)$.", 
+                hint2: "Thực hiện phép trừ. Bỏ ngoặc thứ hai, đổi dấu toàn bộ bên trong thành: $-x^4 - x^3 + 4x^2$. Quan sát xem có hạng tử nào triệt tiêu không nhé ($x^3$ và $x^2$).", 
+                solution: "Ta có: $x^3 - 4x^2 + 8x - 2 = (x^4 + x^3 - 4x^2) + B(x)$<br>Suy ra: $B(x) = (x^3 - 4x^2 + 8x - 2) - (x^4 + x^3 - 4x^2)$<br>$B(x) = x^3 - 4x^2 + 8x - 2 - x^4 - x^3 + 4x^2$<br>$B(x) = -x^4 + (x^3 - x^3) + (-4x^2 + 4x^2) + 8x - 2$<br>$B(x) = -x^4 + 8x - 2$" 
+            },
+            { 
+                id: 8, title: "Bài 8 (trang 36)", 
+                content: "Từ một tờ giấy hình vuông có cạnh là $2x$, người ta cắt đi một hình chữ nhật có độ dài hai cạnh là $x$ và $3$.<br>Tìm đa thức biểu thị diện tích phần giấy còn lại.", 
+                inputs: [
+                    { label: "Diện tích còn lại =", acceptedAnswers: ["4x^2-3x"] }
+                ],
+                hint1: "Diện tích phần còn lại = Diện tích tờ giấy hình vuông $-$ Diện tích phần bị cắt đi (hình chữ nhật).", 
+                hint2: "Diện tích hình vuông cạnh $2x$ là: $2x \\cdot 2x = 4x^2$.<br>Diện tích hình chữ nhật là: $x \\cdot 3 = 3x$.<br>Tiếp theo em chỉ cần lập phép trừ.", 
+                solution: "Diện tích của tờ giấy hình vuông ban đầu là:<br>$(2x) \\cdot (2x) = 4x^2$<br>Diện tích của phần giấy bị cắt đi (hình chữ nhật) là:<br>$x \\cdot 3 = 3x$<br>Đa thức biểu thị diện tích phần giấy còn lại là biểu thức hiệu của hai diện tích trên:<br>$4x^2 - 3x$" 
+            },
+            { 
+                id: 9, title: "Bài 9 (trang 36)", 
+                content: "a) Thực hiện phép tính: $(3x - 1) + [(2x^2 + 5x) + (4 - 3x)]$.<br>b) Cho đa thức $A = 4x + 2$ và $C = 5 - 3x^2$. Tìm đa thức $B$ sao cho $A + B = C$.", 
+                inputs: [
+                    { label: "a) Kết quả tính =", acceptedAnswers: ["2x^2+5x+3"] },
+                    { label: "b) Đa thức B =", acceptedAnswers: ["-3x^2-4x+3"] }
+                ],
+                hint1: "<b>Câu a:</b> Phá ngoặc vuông và ngoặc tròn, sau đó nhóm các hạng tử đồng dạng.<br><b>Câu b:</b> Từ $A + B = C$, ta có $B = C - A = (5 - 3x^2) - (4x + 2)$.", 
+                hint2: "<b>Câu a:</b> Thu gọn: $3x - 1 + 2x^2 + 5x + 4 - 3x = 2x^2 + (3x + 5x - 3x) + (-1 + 4)$.<br><b>Câu b:</b> Phá ngoặc: $5 - 3x^2 - 4x - 2$. Sắp xếp lại theo lũy thừa giảm dần.", 
+                solution: "<b>a) Thực hiện phép tính:</b><br>$(3x - 1) + [(2x^2 + 5x) + (4 - 3x)]$<br>$= 3x - 1 + 2x^2 + 5x + 4 - 3x$<br>$= 2x^2 + (3x + 5x - 3x) + (-1 + 4)$<br>$= 2x^2 + 5x + 3$<br><br><b>b) Tìm đa thức B:</b><br>Ta có $A + B = C$<br>Suy ra $B = C - A$<br>Thay $A$ và $C$ vào biểu thức, ta được:<br>$B = (5 - 3x^2) - (4x + 2)$<br>$B = 5 - 3x^2 - 4x - 2$<br>$B = -3x^2 - 4x + (5 - 2)$<br>$B = -3x^2 - 4x + 3$<br>Vậy đa thức $B = -3x^2 - 4x + 3$." 
+            }
+        ];
+
+        const batches = [
+            { id: 0, title: "Chặng 1", items: [1, 2, 3] },
+            { id: 1, title: "Chặng 2", items: [4, 5, 6] },
+            { id: 2, title: "Chặng 3", items: [7, 8, 9] }
+        ];
+
+        let progressData = {};
+        let currentExerciseId = null;
+        let currentBatchId = 0;
+        let isFinalCompleted = false;
+        let activeInputId = '';
+
+        const superScriptMap = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+        const reverseSuperScriptMap = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9' };
+
+        function initProgress() {
+            progressData = {};
+            baiTapData.forEach(item => { progressData[item.id] = { attempts: 0, status: 'pending', studentAnswers: [] }; });
+        }
+        initProgress();
+
+        function normalizeString(str) {
+            let s = str.toLowerCase().replace(/\s+/g, '').replace(/\*/g, '').trim();
+            s = s.replace(/([⁰¹²³⁴⁵⁶⁷⁸⁹]+)/g, function(match) {
+                let digits = match.split('').map(char => reverseSuperScriptMap[char]).join('');
+                return '^' + digits;
+            });
+            return s;
+        }
+
+        function isBatchFinished(batchId) {
+            return batches[batchId].items.every(id => progressData[id].status !== 'pending');
+        }
+
+        function getNextPendingInBatch(batchId) {
+            return batches[batchId].items.find(id => progressData[id].status === 'pending') || null;
+        }
+
+        function startJourney() { loadExercise(1); }
+
+        function renderNav() {
+            const container = document.getElementById('nav-container');
+            container.innerHTML = '';
+            
+            batches.forEach((batch, index) => {
+                const isBatchLocked = index > currentBatchId;
+                const batchFinished = isBatchFinished(index);
+                
+                const batchDiv = document.createElement('div');
+                batchDiv.className = `border rounded-xl overflow-hidden ${isBatchLocked ? 'border-slate-200 bg-slate-50 opacity-70' : (batchFinished ? 'border-green-200 bg-green-50/30' : 'border-blue-200 bg-white shadow-sm')}`;
+                
+                const batchHeader = document.createElement('div');
+                batchHeader.className = `px-4 py-2 text-sm font-bold flex justify-between items-center ${isBatchLocked ? 'text-slate-400' : (batchFinished ? 'text-green-600 bg-green-100/50' : 'text-blue-700 bg-blue-50')}`;
+                batchHeader.innerHTML = `<span>${batch.title}</span> ${isBatchLocked ? '<i class="fas fa-lock text-slate-300"></i>' : (batchFinished ? '<i class="fas fa-check-double"></i>' : '<i class="fas fa-running"></i>')}`;
+                batchDiv.appendChild(batchHeader);
+
+                const btnContainer = document.createElement('div');
+                btnContainer.className = "flex flex-col p-2 gap-1.5";
+
+                batch.items.forEach(id => {
+                    const exercise = baiTapData.find(e => e.id === id);
+                    const pData = progressData[id];
+                    
+                    let statusClass = 'status-pending border-transparent hover:bg-slate-100 text-slate-600';
+                    let iconHtml = '<i class="fas fa-circle text-[8px] text-slate-300"></i>';
+
+                    if (isBatchLocked) {
+                        statusClass = 'locked border-transparent';
+                        iconHtml = '<i class="fas fa-lock text-slate-300 text-xs"></i>';
+                    } else {
+                        if (pData.status === 'correct') {
+                            statusClass = 'status-correct bg-green-50/80 text-green-700 hover:bg-green-100';
+                            iconHtml = '<i class="fas fa-check-circle text-green-500"></i>';
+                        } else if (pData.status === 'failed') {
+                            statusClass = 'status-failed bg-red-50/80 text-red-700 hover:bg-red-100';
+                            iconHtml = '<i class="fas fa-times-circle text-red-500"></i>';
+                        }
+                        if(currentExerciseId === id) {
+                            statusClass = 'active font-bold';
+                            if(pData.status === 'pending') iconHtml = '<i class="fas fa-edit"></i>';
+                        }
+                    }
+
+                    const btn = document.createElement('button');
+                    btn.className = `nav-btn text-left px-3 py-2 rounded-lg font-semibold flex items-center justify-between text-sm transition-all ${statusClass}`;
+                    btn.disabled = isBatchLocked;
+                    if(!isBatchLocked) btn.onclick = () => loadExercise(id);
+                    btn.innerHTML = `<span>${exercise.title.split(' ')[0]} ${exercise.title.split(' ')[1]}</span> ${iconHtml}`;
+                    btnContainer.appendChild(btn);
+                });
+
+                batchDiv.appendChild(btnContainer);
+                container.appendChild(batchDiv);
+            });
+
+            if(isFinalCompleted) document.getElementById('btn-force-summary').classList.remove('hidden');
+            document.getElementById('header-stage-info').innerText = `Chặng ${Math.min(currentBatchId + 1, 3)} / 3`;
+        }
+
+        function hideAllScreens() {
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('batch-summary-screen').classList.add('hidden');
+            document.getElementById('final-summary-screen').classList.add('hidden');
+            document.getElementById('workspace').classList.add('hidden');
+        }
+
+        function renderInputs(exercise, pData) {
+            const container = document.getElementById('dynamic-inputs-container');
+            container.innerHTML = '';
+            
+            exercise.inputs.forEach((inp, idx) => {
+                const div = document.createElement('div');
+                div.className = "flex flex-col sm:flex-row gap-2 sm:items-center";
+                
+                const label = document.createElement('div');
+                label.className = "font-bold text-slate-600 sm:w-44 shrink-0";
+                label.innerHTML = inp.label;
+                
+                const input = document.createElement('input');
+                input.type = "text";
+                input.id = `answer-input-${idx}`;
+                input.className = "dynamic-answer-input math-input flex-1 border-2 border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all text-slate-800";
+                input.placeholder = "Ví dụ: -3x⁴ + 5x³";
+                input.autocomplete = "off";
+                input.value = pData.studentAnswers[idx] || '';
+                
+                input.addEventListener('focus', () => { activeInputId = input.id; });
+                input.addEventListener('keypress', e => { if (e.key === 'Enter') checkAnswer(); });
+                input.addEventListener('input', function(e) {
+                    let val = this.value;
+                    let replaced = val.replace(/\^(\d+)/g, function(match, digits) {
+                        return digits.split('').map(char => superScriptMap[char] || char).join('');
+                    });
+                    if(val !== replaced) {
+                        let start = this.selectionStart;
+                        this.value = replaced;
+                        this.setSelectionRange(start - 1, start - 1);
+                    }
+                });
+
+                div.appendChild(label);
+                div.appendChild(input);
+                container.appendChild(div);
+            });
+            
+            if (exercise.inputs.length > 0) activeInputId = `answer-input-0`;
+        }
+
+        function loadExercise(id) {
+            currentExerciseId = id;
+            const exercise = baiTapData.find(e => e.id === id);
+            const pData = progressData[id];
+            let belongToBatch = batches.findIndex(b => b.items.includes(id));
+            
+            hideAllScreens();
+            const ws = document.getElementById('workspace');
+            ws.classList.remove('hidden');
+            ws.classList.remove('fade-in'); void ws.offsetWidth; ws.classList.add('fade-in');
+
+            document.getElementById('q-title').innerText = exercise.title;
+            document.getElementById('q-number').innerText = id;
+            document.getElementById('q-content').innerHTML = exercise.content;
+            
+            renderInputs(exercise, pData);
+            
+            if(window.MathJax) MathJax.typesetPromise([document.getElementById('q-content')]).catch(err => console.log(err));
+
+            resetUI();
+            updateBadge(pData.status);
+            renderNav();
+
+            if (isBatchFinished(belongToBatch)) {
+                document.getElementById('review-banner').classList.remove('hidden');
+                
+                const inputEls = document.querySelectorAll('.dynamic-answer-input');
+                if (pData.status === 'correct') {
+                    inputEls.forEach(el => el.classList.add('border-green-500', 'bg-green-50', 'text-green-700'));
+                } else {
+                    inputEls.forEach(el => el.classList.add('bg-slate-50', 'text-slate-500'));
+                }
+
+                lockInput();
+                showSolution(exercise.solution);
+                if (pData.status === 'correct') {
+                    document.getElementById('success-msg').classList.remove('hidden');
+                    document.getElementById('btn-next-success').innerText = 'Quay về bài đang làm';
+                } else if (pData.status === 'failed') {
+                    showHint(1, exercise.hint1); showHint(2, exercise.hint2);
+                }
+            } else {
+                document.getElementById('review-banner').classList.add('hidden');
+                if (pData.status === 'correct') {
+                    document.querySelectorAll('.dynamic-answer-input').forEach(el => el.classList.add('border-green-500', 'bg-green-50', 'text-green-700'));
+                    document.getElementById('success-msg').classList.remove('hidden');
+                    showSolution(exercise.solution);
+                    setupNextButton('btn-next-success');
+                    lockInput();
+                } else if (pData.status === 'failed') {
+                    document.querySelectorAll('.dynamic-answer-input').forEach(el => el.classList.add('bg-slate-50', 'text-slate-500'));
+                    document.getElementById('fail-msg').classList.remove('hidden');
+                    setupNextButton('btn-next-fail');
+                    lockInput();
+                } else {
+                    unlockInput();
+                    if (pData.attempts === 1) showHint(1, exercise.hint1);
+                    if (pData.attempts === 2) { showHint(1, exercise.hint1); showHint(2, exercise.hint2); }
+                    setTimeout(() => {
+                        const firstInput = document.getElementById('answer-input-0');
+                        if(firstInput) firstInput.focus();
+                    }, 100);
+                }
+            }
+        }
+
+        function resetUI() {
+            document.getElementById('hint-1').classList.add('hidden');
+            document.getElementById('hint-2').classList.add('hidden');
+            document.getElementById('solution-box').classList.add('hidden');
+            document.getElementById('success-msg').classList.add('hidden');
+            document.getElementById('fail-msg').classList.add('hidden');
+        }
+
+        function lockInput() {
+            document.querySelectorAll('.dynamic-answer-input').forEach(el => el.disabled = true);
+            document.getElementById('btn-submit').disabled = true;
+            document.getElementById('btn-submit').classList.add('opacity-50', 'cursor-not-allowed');
+            document.getElementById('keyboard-area').classList.add('opacity-50', 'pointer-events-none');
+        }
+
+        function unlockInput() {
+            document.querySelectorAll('.dynamic-answer-input').forEach(el => el.disabled = false);
+            document.getElementById('btn-submit').disabled = false;
+            document.getElementById('btn-submit').classList.remove('opacity-50', 'cursor-not-allowed');
+            document.getElementById('keyboard-area').classList.remove('opacity-50', 'pointer-events-none');
+        }
+
+        function setupNextButton(btnId) {
+            const btn = document.getElementById(btnId);
+            if (isBatchFinished(currentBatchId)) {
+                if(currentBatchId < 2) btn.innerHTML = 'Hoàn thành Chặng! <i class="fas fa-flag-checkered ml-1"></i>';
+                else btn.innerHTML = 'Xem Tổng Kết Cuối Cùng 🏆';
+            } else {
+                btn.innerHTML = `Tiếp tục <i class="fas fa-arrow-right ml-1"></i>`;
+            }
+        }
+
+        function unlockNextBatch() {
+            if (currentBatchId < batches.length - 1) {
+                currentBatchId++;
+                renderNav();
+                loadExercise(batches[currentBatchId].items[0]);
+            }
+        }
+
+        function goToNextPendingOrSummary() {
+            const nextPendingCurrentBatch = getNextPendingInBatch(currentBatchId);
+            if (nextPendingCurrentBatch) {
+                loadExercise(nextPendingCurrentBatch);
+            } else if(isBatchFinished(currentBatchId)) {
+                if (currentBatchId < 2) showBatchSummary(currentBatchId);
+                else { isFinalCompleted = true; showFinalSummary(); }
+            }
+        }
+
+        function checkAnswer() {
+            if(!currentExerciseId) return;
+            const exercise = baiTapData.find(e => e.id === currentExerciseId);
+            const pData = progressData[currentExerciseId];
+            
+            const inputEls = document.querySelectorAll('.dynamic-answer-input');
+            let allCorrect = true;
+            let anyEmpty = false;
+            
+            pData.studentAnswers = [];
+
+            inputEls.forEach((inputEl, index) => {
+                let studentAnswer = normalizeString(inputEl.value);
+                pData.studentAnswers.push(inputEl.value);
+                
+                inputEl.classList.remove('border-red-500', 'bg-red-50', 'border-green-500', 'bg-green-50', 'text-green-700', 'border-amber-400', 'bg-amber-50');
+                
+                if(studentAnswer === "") {
+                    anyEmpty = true;
+                    inputEl.classList.add('border-amber-400', 'bg-amber-50');
+                } else {
+                    const isCorrect = exercise.inputs[index].acceptedAnswers.some(ans => normalizeString(ans) === studentAnswer);
+                    if (!isCorrect) {
+                        allCorrect = false;
+                        inputEl.classList.add('border-red-500', 'bg-red-50');
+                        inputEl.classList.remove('shake'); void inputEl.offsetWidth; inputEl.classList.add('shake');
+                    } else {
+                        inputEl.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+                    }
+                }
+            });
+
+            if (anyEmpty) {
+                const firstEmpty = Array.from(inputEls).find(el => el.value.trim() === "");
+                if(firstEmpty) firstEmpty.focus();
+                return; 
+            }
+
+            if (allCorrect) {
+                pData.status = 'correct';
+                resetUI();
+                document.getElementById('success-msg').classList.remove('hidden');
+                showSolution(exercise.solution);
+                lockInput();
+                setupNextButton('btn-next-success');
+            } else {
+                pData.attempts += 1;
+                
+                if (pData.attempts === 1) showHint(1, exercise.hint1);
+                else if (pData.attempts === 2) showHint(2, exercise.hint2);
+                else if (pData.attempts >= 3) {
+                    pData.status = 'failed';
+                    resetUI();
+                    document.getElementById('fail-msg').classList.remove('hidden');
+                    lockInput();
+                    setupNextButton('btn-next-fail');
+                }
+            }
+            renderNav(); 
+        }
+
+        function showBatchSummary(batchId) {
+            hideAllScreens();
+            const batchObj = batches[batchId];
+            const screen = document.getElementById('batch-summary-screen');
+            screen.classList.remove('hidden');
+            document.getElementById('batch-title').innerText = `Hoàn thành ${batchObj.title}!`;
+            
+            let correctInBatch = 0;
+            batchObj.items.forEach(id => { if(progressData[id].status === 'correct') correctInBatch++; });
+            document.getElementById('batch-score').innerText = `${correctInBatch}/3`;
+
+            if(correctInBatch === 3) {
+                document.getElementById('batch-reward').classList.remove('hidden');
+                document.getElementById('batch-no-reward').classList.add('hidden');
+            } else {
+                document.getElementById('batch-reward').classList.add('hidden');
+                document.getElementById('batch-no-reward').classList.remove('hidden');
+            }
+
+            if(batchId < 2) {
+                document.getElementById('btn-next-batch').classList.remove('hidden');
+                document.getElementById('btn-finish-all').classList.add('hidden');
+            } else {
+                document.getElementById('btn-next-batch').classList.add('hidden');
+                document.getElementById('btn-finish-all').classList.remove('hidden');
+            }
+        }
+
+        function showFinalSummary() {
+            isFinalCompleted = true;
+            hideAllScreens();
+            renderNav();
+            const screen = document.getElementById('final-summary-screen');
+            screen.classList.remove('hidden');
+
+            const totalScore = baiTapData.filter(e => progressData[e.id].status === 'correct').length;
+            document.getElementById('final-score-text').innerText = `${totalScore}/9`;
+
+            const iconEl = document.getElementById('cert-icon');
+            const titleEl = document.getElementById('cert-title');
+            const descEl = document.getElementById('cert-desc');
+            const gmMsgEl = document.getElementById('growth-mindset-msg');
+
+            screen.classList.remove('cert-diamond', 'cert-gold', 'cert-silver', 'cert-bronze');
+            iconEl.className = 'fas mb-4 drop-shadow-lg';
+
+            if (totalScore === 9) {
+                screen.classList.add('cert-diamond'); iconEl.classList.add('fa-gem', 'text-cyan-400');
+                titleEl.innerText = 'Kim Cương Toán Học'; 
+                gmMsgEl.innerText = 'Sự Kiên Trì Đỉnh Cao!';
+                descEl.innerText = 'Thật tuyệt vời! Sự nỗ lực hết mình đã giúp em chinh phục hoàn toàn thử thách. Hãy tiếp tục giữ vững tinh thần này nhé!';
+            } else if (totalScore >= 7) {
+                screen.classList.add('cert-gold'); iconEl.classList.add('fa-trophy', 'text-yellow-400');
+                titleEl.innerText = 'Kiện Tướng Toán Học'; 
+                gmMsgEl.innerText = 'Tư Duy Vượt Trội!';
+                descEl.innerText = 'Thành quả rất xứng đáng! Em đã tư duy rất tốt. Những vướng mắc nhỏ chỉ là cơ hội để rèn luyện bộ não mạnh mẽ hơn thôi.';
+            } else if (totalScore >= 5) {
+                screen.classList.add('cert-silver'); iconEl.classList.add('fa-medal', 'text-slate-400');
+                titleEl.innerText = 'Học Giả Toán Học'; 
+                gmMsgEl.innerText = 'Sự Tiến Bộ Đáng Giá!';
+                descEl.innerText = 'Em đã tiến bộ rất nhiều! Đừng ngại khó khăn, mỗi lần sai là một bước đệm giúp em hiểu sâu hơn vấn đề. Em đang đi rất đúng hướng!';
+            } else {
+                screen.classList.add('cert-bronze'); iconEl.classList.add('fa-award', 'text-amber-600');
+                titleEl.innerText = 'Chiến Binh Nỗ Lực'; 
+                gmMsgEl.innerText = 'Tinh Thần Không Bỏ Cuộc!';
+                descEl.innerText = 'Điều quý giá nhất là em đã không bỏ cuộc! Thất bại không có nghĩa là em dở, mà em đang học cách làm đúng. Hãy xem lại lời giải và tiếp tục cố gắng, em sẽ làm được!';
+            }
+
+            const listEl = document.getElementById('final-summary-list');
+            listEl.innerHTML = '';
+            baiTapData.forEach(item => {
+                const isCorrect = progressData[item.id].status === 'correct';
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border flex flex-col justify-between gap-2 cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all bg-white ${isCorrect ? 'border-green-200' : 'border-red-200'}`;
+                card.onclick = () => loadExercise(item.id); 
+                card.innerHTML = `
+                    <div class="flex items-start gap-2">
+                        <div class="w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-white text-xs ${isCorrect ? 'bg-green-500' : 'bg-red-500'}">
+                            <i class="fas ${isCorrect ? 'fa-check' : 'fa-times'}"></i>
+                        </div>
+                        <div class="font-bold text-slate-700 text-sm leading-tight">${item.title}</div>
+                    </div>
+                    <div class="text-right text-[10px] font-bold ${isCorrect ? 'text-green-600' : 'text-red-500'}">${isCorrect ? 'ĐÚNG' : 'SAI'}</div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        function showHint(level, htmlContent) {
+            const el = document.getElementById(`hint-${level}`);
+            document.getElementById(`hint-${level}-text`).innerHTML = htmlContent;
+            el.classList.remove('hidden');
+            if(window.MathJax) MathJax.typesetPromise([el]).catch(err => console.log(err));
+        }
+
+        function showSolution(htmlContent) {
+            const el = document.getElementById('solution-box');
+            document.getElementById('solution-text').innerHTML = htmlContent;
+            el.classList.remove('hidden');
+            if(window.MathJax) MathJax.typesetPromise([el]).catch(err => console.log(err));
+        }
+
+        function updateBadge(status) {
+            const badge = document.getElementById('q-badge');
+            if(status === 'correct') {
+                badge.className = "px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-bold border border-green-200"; badge.innerHTML = '<i class="fas fa-check"></i> Đã đúng';
+            } else if (status === 'failed') {
+                badge.className = "px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-bold border border-red-200"; badge.innerHTML = '<i class="fas fa-times"></i> Chưa giải được';
+            } else {
+                badge.className = "px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-sm font-semibold border border-slate-200"; badge.innerText = 'Chưa hoàn thành';
+            }
+        }
+
+        function insertChar(char) {
+            if(!activeInputId) return;
+            const inputEl = document.getElementById(activeInputId);
+            if(!inputEl || inputEl.disabled) return;
+            
+            const start = inputEl.selectionStart;
+            const end = inputEl.selectionEnd;
+            const val = inputEl.value;
+            inputEl.value = val.substring(0, start) + char + val.substring(end);
+            inputEl.focus();
+            inputEl.selectionStart = inputEl.selectionEnd = start + char.length;
+        }
+
+        // ==========================================
+        // DEV TOOLS SCRIPT
+        // ==========================================
+        function toggleDevTools() {
+            const panel = document.getElementById('dev-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        function devUnlockAll() {
+            currentBatchId = 2; // Max batch id
+            renderNav();
+            toggleDevTools();
+        }
+
+        function devFillCorrect() {
+            if(!currentExerciseId) { alert("Hãy mở một bài tập trước!"); return; }
+            const ex = baiTapData.find(e => e.id === currentExerciseId);
+            const inputEls = document.querySelectorAll('.dynamic-answer-input');
+            
+            inputEls.forEach((el, idx) => {
+                let ans = ex.inputs[idx].acceptedAnswers[0];
+                ans = ans.replace(/\^(\d+)/g, function(match, digits) {
+                    return digits.split('').map(char => superScriptMap[char] || char).join('');
+                });
+                el.value = ans;
+            });
+            toggleDevTools();
+        }
+
+        function devShowSolution() {
+            if(!currentExerciseId) { alert("Hãy mở một bài tập trước!"); return; }
+            
+            document.querySelectorAll('.dynamic-answer-input').forEach(el => el.value = "sai");
+            progressData[currentExerciseId].attempts = 2; 
+            checkAnswer();
+            toggleDevTools();
+        }
+
+        function devReset() {
+            initProgress();
+            currentBatchId = 0;
+            currentExerciseId = null;
+            isFinalCompleted = false;
+            document.getElementById('btn-force-summary').classList.add('hidden');
+            hideAllScreens();
+            document.getElementById('welcome-screen').classList.remove('hidden');
+            renderNav();
+            toggleDevTools();
+        }
+
+        window.onload = renderNav;
+
+    </script>
+</body>
+</html>
